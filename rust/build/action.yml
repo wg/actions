@@ -1,0 +1,51 @@
+name: build
+
+inputs:
+  target:
+    type:     string
+    required: true
+  profile:
+    type:     string
+    required: false
+    default:  release
+  toolchain:
+    type:     string
+    required: false
+    default:  stable
+
+outputs:
+  binaries:
+    value: ${{ steps.build.outputs.binaries }}
+  artifact:
+    value: ${{ steps.build.outputs.artifact }}
+  binary:
+    value: ${{ steps.build.outputs.binary   }}
+  digest:
+    value: ${{ steps.build.outputs.digest   }}
+  prefix:
+    value: ${{ steps.build.outputs.prefix   }}
+  location:
+    value: ${{ steps.build.outputs.location }}
+  manifest:
+    value: ${{ steps.build.outputs.manifest }}
+  compiler:
+    value: ${{ steps.build.outputs.compiler }}
+
+runs:
+  using: composite
+  steps:
+    - uses: dtolnay/rust-toolchain@1.0
+      with:
+        targets:   ${{ inputs.target    }}
+        toolchain: ${{ inputs.toolchain }}
+    - uses: actions/setup-node@v3
+      with:
+        node-version: 19
+    - run: node $GITHUB_ACTION_PATH/action.mjs
+      env:
+        source:  ${{ github.repository }}
+        commit:  ${{ github.sha        }}
+        target:  ${{ inputs.target     }}
+        profile: ${{ inputs.profile    }}
+      shell: bash
+      id: build
